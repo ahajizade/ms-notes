@@ -1,12 +1,12 @@
 package ms.notes.service;
 
 import lombok.AllArgsConstructor;
-import ms.notes.dao.repository.NoticeRepository;
+import ms.notes.dao.repository.NotesRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class NoticeService {
+public class NotesService {
 
-    private final NoticeRepository repository;
+    private final NotesRepository repository;
 }

@@ -1,0 +1,8 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/notes
+      authentication-database: notes
+      username: root
+      password: example
+      database: notes

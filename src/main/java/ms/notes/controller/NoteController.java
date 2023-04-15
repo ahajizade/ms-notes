@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import ms.notes.model.NoteDto;
 import ms.notes.service.NoteService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,8 +42,8 @@ public class NoteController {
     }
 
     @PutMapping("/{id}")
-    public NoteDto update(@PathVariable String id, @RequestBody NoteDto note) {
-       return service.updateNote(note, id);
+    public NoteDto update(@PathVariable String id, @Valid @RequestBody NoteDto note) {
+        return service.updateNote(note, id);
     }
 
     @DeleteMapping("/{id}")
@@ -53,15 +54,15 @@ public class NoteController {
 
     @PutMapping("/{id}/like")
     @ResponseStatus(HttpStatus.CREATED)
-    public NoteDto addLike(@RequestHeader(name = "User-Id") String userId,
-                           @PathVariable String id) {
-        return service.addLike(id, userId);
+    public NoteDto addLike(@PathVariable String id,
+                           Authentication authentication) {
+        return service.addLike(id, authentication);
     }
 
     @DeleteMapping("/{id}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public NoteDto removeLike(@RequestHeader(name = "User-Id") String userId,
+    public NoteDto removeLike(@RequestHeader("User-Name") String username,
                               @PathVariable String id) {
-        return service.removeLike(id, userId);
+        return service.removeLike(id, username);
     }
 }

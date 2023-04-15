@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ms.notes.dao.entity.LikeEntity;
 import ms.notes.dao.entity.NoteEntity;
@@ -13,12 +13,12 @@ import ms.notes.dao.repository.NoteRepository;
 import ms.notes.exception.ResourceNotFoundException;
 import ms.notes.mapper.NoteMapper;
 import ms.notes.model.NoteDto;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NoteService {
 
     private final NoteRepository repository;
@@ -72,24 +72,24 @@ public class NoteService {
         log.info("ActionLog.removeNote.end: id {}", id);
     }
 
-    public NoteDto addLike(String noteId, String userId) {
-        log.info("ActionLog.addLike.start: id {}, userId {}", noteId, userId);
+    public NoteDto addLike(String noteId, Authentication authentication) {
+        log.info("ActionLog.addLike.start: id {}, username {}", noteId, authentication.getName());
         findNoteById(noteId); //validation for note. If note don't find will throw exception
-        likeRepository.findByUserIdAndNoteId(userId, noteId)
-                .orElseGet(() -> likeRepository.save(LikeEntity.builder().noteId(noteId).userId(userId).build()));
+        likeRepository.findByUserIdAndNoteId(authentication.getName(), noteId)
+                .orElseGet(() -> likeRepository.save(LikeEntity.builder().noteId(noteId).userId(authentication.getName()).build()));
         var dto = getNoteById(noteId);
-        log.info("ActionLog.addLike.end: id {}, userId {}", noteId, userId);
+        log.info("ActionLog.addLike.end: id {}, username {}", noteId, authentication.getName());
         return dto;
     }
 
-    public NoteDto removeLike(String noteId, String userId) {
-        log.info("ActionLog.removeLike.start: id {}, userId {}", noteId, userId);
+    public NoteDto removeLike(String noteId, String username) {
+        log.info("ActionLog.removeLike.start: id {}, username {}", noteId, username);
         findNoteById(noteId); //validation for note. If note don't find will throw exception
-        var likeEntity = likeRepository.findByUserIdAndNoteId(userId, noteId).orElseThrow(() ->
+        var likeEntity = likeRepository.findByUserIdAndNoteId(username, noteId).orElseThrow(() ->
                 new ResourceNotFoundException("exception.ms-notes.like-not-found"));
         likeRepository.delete(likeEntity);
         var dto = getNoteById(noteId);
-        log.info("ActionLog.removeLike.start: id {}, userId {}", noteId, userId);
+        log.info("ActionLog.removeLike.start: id {}, userId {}", noteId, username);
         return dto;
     }
 

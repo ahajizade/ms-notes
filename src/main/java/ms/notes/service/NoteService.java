@@ -2,14 +2,17 @@ package ms.notes.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ms.notes.dao.entity.LikeEntity;
 import ms.notes.dao.entity.NoteEntity;
+import ms.notes.dao.repository.LikeRepository;
 import ms.notes.dao.repository.NoteRepository;
 import ms.notes.exception.ResourceNotFoundException;
 import ms.notes.mapper.NoteMapper;
 import ms.notes.model.NoteDto;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +22,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class NoteService {
 
     private final NoteRepository repository;
+    private final LikeRepository likeRepository;
 
     public List<NoteDto> getNotes() {
         log.info("ActionLog.getNotes.start");
-        var entities = repository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        var entities = repository.findAllByOrderByCreatedAtDesc();
+        Map<String, Long> likes = likeRepository.findAll().stream()
+                .collect(Collectors.groupingBy(LikeEntity::getNoteId, Collectors.counting()));
         var dtos = NoteMapper.MAPPER.entitiesToDtos(entities);
+        dtos.forEach(e -> e.setLikes(likes.get(e.getId()) != null ? likes.get(e.getId()) : 0L));
         log.info("ActionLog.getNotes.end");
         return dtos;
     }
@@ -31,7 +38,9 @@ public class NoteService {
     public NoteDto getNoteById(String id) {
         log.info("ActionLog.getNoteById.start: id {}", id);
         var entity = findNoteById(id);
+        var likes = likeRepository.countByNoteId(entity.getId());
         var dto = NoteMapper.MAPPER.entityToDto(entity);
+        dto.setLikes(likes);
         log.info("ActionLog.getNoteById.end: id {}", id);
         return dto;
     }
@@ -41,18 +50,19 @@ public class NoteService {
         var request = NoteMapper.MAPPER.dtoToEntity(note);
         request.setCreatedAt(LocalDateTime.now());
         request.setUpdatedAt(LocalDateTime.now());
-        request.setLikes(0L);
         var response = NoteMapper.MAPPER.entityToDto(repository.save(request));
         log.info("ActionLog.createNote.end");
         return response;
     }
 
-    @Transactional
-    public void updateNote(NoteDto note, String id) {
+    public NoteDto updateNote(NoteDto note, String id) {
         log.info("ActionLog.updateNote.start: id {}", id);
         var entity = findNoteById(id);
         NoteMapper.MAPPER.updateEntity(note, entity);
+        repository.save(entity);
+        var dto = NoteMapper.MAPPER.entityToDto(entity);
         log.info("ActionLog.updateNote.end: id {}", id);
+        return dto;
     }
 
     public void removeNote(String id) {
@@ -62,23 +72,24 @@ public class NoteService {
         log.info("ActionLog.removeNote.end: id {}", id);
     }
 
-    @Transactional
-    public NoteDto addLike(String id) {
-        log.info("ActionLog.addLike.start: id {}", id);
-        var entity = findNoteById(id);
-        entity.setLikes(entity.getLikes() + 1);
-        var dto = NoteMapper.MAPPER.entityToDto(entity);
-        log.info("ActionLog.addLike.end: id {}", id);
+    public NoteDto addLike(String noteId, String userId) {
+        log.info("ActionLog.addLike.start: id {}, userId {}", noteId, userId);
+        findNoteById(noteId); //validation for note. If note don't find will throw exception
+        likeRepository.findByUserIdAndNoteId(userId, noteId)
+                .orElseGet(() -> likeRepository.save(LikeEntity.builder().noteId(noteId).userId(userId).build()));
+        var dto = getNoteById(noteId);
+        log.info("ActionLog.addLike.end: id {}, userId {}", noteId, userId);
         return dto;
     }
 
-    @Transactional
-    public NoteDto removeLike(String id) {
-        log.info("ActionLog.removeLike.start: id {}", id);
-        var entity = findNoteById(id);
-        entity.setLikes(entity.getLikes() - 1);
-        var dto = NoteMapper.MAPPER.entityToDto(entity);
-        log.info("ActionLog.removeLike.end: id {}", id);
+    public NoteDto removeLike(String noteId, String userId) {
+        log.info("ActionLog.removeLike.start: id {}, userId {}", noteId, userId);
+        findNoteById(noteId); //validation for note. If note don't find will throw exception
+        var likeEntity = likeRepository.findByUserIdAndNoteId(userId, noteId).orElseThrow(() ->
+                new ResourceNotFoundException("exception.ms-notes.like-not-found"));
+        likeRepository.delete(likeEntity);
+        var dto = getNoteById(noteId);
+        log.info("ActionLog.removeLike.start: id {}, userId {}", noteId, userId);
         return dto;
     }
 

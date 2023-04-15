@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,8 +41,8 @@ public class NoteController {
     }
 
     @PutMapping("/{id}")
-    public void update(@PathVariable String id, @RequestBody NoteDto note) {
-        service.updateNote(note, id);
+    public NoteDto update(@PathVariable String id, @RequestBody NoteDto note) {
+       return service.updateNote(note, id);
     }
 
     @DeleteMapping("/{id}")
@@ -50,15 +51,17 @@ public class NoteController {
         service.removeNote(id);
     }
 
-    @PostMapping("/{id}/like")
+    @PutMapping("/{id}/like")
     @ResponseStatus(HttpStatus.CREATED)
-    public NoteDto addLike(@PathVariable String id) {
-        return service.addLike(id);
+    public NoteDto addLike(@RequestHeader(name = "User-Id") String userId,
+                           @PathVariable String id) {
+        return service.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public NoteDto removeLike(@PathVariable String id) {
-        return service.removeLike(id);
+    public NoteDto removeLike(@RequestHeader(name = "User-Id") String userId,
+                              @PathVariable String id) {
+        return service.removeLike(id, userId);
     }
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class NoteDto {
 
+    private String id;
     @NotBlank
     private String content;
     private Long likes;

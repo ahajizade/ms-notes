@@ -164,10 +164,10 @@ First execute docker-compose.yml file and next run application.
 - #### Remove a like from note:
     <details>
     <summary>/v1/notes/{id}/like - HTTP DELETE:</summary>
-    Request header: User-Name
+    
+  Request header: User-Name
 
   Doesn't require authentication:
-
 
   Return data example:
 

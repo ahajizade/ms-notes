@@ -1,4 +1,4 @@
 package ms.notes.controller;
 
-public class NotesController {
+public class UserController {
 }

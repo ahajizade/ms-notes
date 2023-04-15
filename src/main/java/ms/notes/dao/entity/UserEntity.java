@@ -5,10 +5,11 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document
-public class NotesEntity {
+@Document(collection = "users")
+public class UserEntity {
 
     @Id
-    private Long id;
+    private String id;
     private String name;
+    private String email;
 }

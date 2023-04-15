@@ -75,7 +75,7 @@ public class NoteService {
     public NoteDto addLike(String noteId, Authentication authentication) {
         log.info("ActionLog.addLike.start: id {}, username {}", noteId, authentication.getName());
         findNoteById(noteId); //validation for note. If note don't find will throw exception
-        likeRepository.findByUserIdAndNoteId(authentication.getName(), noteId)
+        likeRepository.findByUsernameAndNoteId(authentication.getName(), noteId)
                 .orElseGet(() -> likeRepository.save(LikeEntity.builder()
                         .noteId(noteId)
                         .username(authentication.getName()).build()));
@@ -87,7 +87,7 @@ public class NoteService {
     public NoteDto removeLike(String noteId, String username) {
         log.info("ActionLog.removeLike.start: id {}, username {}", noteId, username);
         findNoteById(noteId); //validation for note. If note don't find will throw exception
-        var likeEntity = likeRepository.findByUserIdAndNoteId(username, noteId).orElseThrow(() ->
+        var likeEntity = likeRepository.findByUsernameAndNoteId(username, noteId).orElseThrow(() ->
                 new ResourceNotFoundException("exception.ms-notes.like-not-found"));
         likeRepository.delete(likeEntity);
         var dto = getNoteById(noteId);

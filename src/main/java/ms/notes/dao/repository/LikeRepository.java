@@ -8,5 +8,5 @@ public interface LikeRepository extends MongoRepository<LikeEntity, String> {
 
     Long countByNoteId(String noteId);
 
-    Optional<LikeEntity> findByUserIdAndNoteId(String userId, String noteId);
+    Optional<LikeEntity> findByUsernameAndNoteId(String userId, String noteId);
 }

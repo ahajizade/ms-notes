@@ -1,6 +1,5 @@
 package ms.notes.dao.entity;
 
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +16,6 @@ public class LikeEntity {
 
     @Id
     private String id;
-    private String userId;
+    private String username;
     private String noteId;
 }

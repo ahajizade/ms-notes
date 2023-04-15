@@ -76,7 +76,9 @@ public class NoteService {
         log.info("ActionLog.addLike.start: id {}, username {}", noteId, authentication.getName());
         findNoteById(noteId); //validation for note. If note don't find will throw exception
         likeRepository.findByUserIdAndNoteId(authentication.getName(), noteId)
-                .orElseGet(() -> likeRepository.save(LikeEntity.builder().noteId(noteId).userId(authentication.getName()).build()));
+                .orElseGet(() -> likeRepository.save(LikeEntity.builder()
+                        .noteId(noteId)
+                        .username(authentication.getName()).build()));
         var dto = getNoteById(noteId);
         log.info("ActionLog.addLike.end: id {}, username {}", noteId, authentication.getName());
         return dto;
